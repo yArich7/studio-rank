@@ -1,0 +1,26 @@
+<view class="page">
+  <view class="card profile">
+    <image class="avatar" src="{{user.avatarUrl || '/images/icons/avatar.png'}}" mode="aspectFill" />
+    <view class="meta">
+      <view class="nickname">{{user.nickname || '刷题同学'}}</view>
+      <view class="muted">工作室成员</view>
+    </view>
+  </view>
+
+  <view class="card menu">
+    <view class="menu-item" bindtap="goProfile">
+      <text>编辑资料（头像 / 昵称）</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="goBind">
+      <text>绑定 / 更换力扣主页</text>
+      <text class="arrow">›</text>
+    </view>
+    <view class="menu-item" bindtap="showId">
+      <text>我的标识</text>
+      <text class="arrow">›</text>
+    </view>
+  </view>
+
+  <view class="muted foot">数据来自力扣公开主页，每小时同步一次</view>
+</view>

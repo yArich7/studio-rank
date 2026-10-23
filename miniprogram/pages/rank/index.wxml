@@ -1,0 +1,44 @@
+<view class="page">
+  <view class="tabs">
+    <view
+      wx:for="{{periods}}"
+      wx:key="key"
+      class="tab {{period === item.key ? 'tab-active' : ''}}"
+      data-period="{{item.key}}"
+      bindtap="switchPeriod"
+    >{{item.label}}</view>
+  </view>
+
+  <view wx:if="{{period !== 'total' && statsSince}}" class="since">
+    周榜/月榜只统计加入之后的新增，自 {{statsSince}} 起
+  </view>
+
+  <view wx:if="{{loading}}" class="empty muted">加载中…</view>
+
+  <block wx:elif="{{list.length > 0}}">
+    <view class="list card">
+      <view wx:for="{{list}}" wx:key="openid" class="row {{item.openid === myRank.openid ? 'row-me' : ''}}">
+        <view class="rank rank-{{item.rank}}">{{item.rank}}</view>
+        <image class="avatar" src="{{item.avatarUrl || '/images/icons/avatar.png'}}" mode="aspectFill" />
+        <view class="info">
+          <view class="nickname">{{item.nickname}}</view>
+          <view class="muted">累计 {{item.totalAc}} 题</view>
+        </view>
+        <view class="score">{{item.score}}<text class="unit">题</text></view>
+      </view>
+    </view>
+    <view class="muted footer">共 {{memberCount}} 人 · 更新于 {{updatedAt}}</view>
+  </block>
+
+  <view wx:else class="empty">
+    <view class="empty-title">工作室里还没人注册</view>
+    <view class="muted">绑定力扣主页后就能出现在这里</view>
+    <button class="btn-primary empty-btn" bindtap="goBind">去绑定</button>
+  </view>
+
+  <view class="mybar" wx:if="{{myRank}}">
+    <text class="mybar-left">我的排名</text>
+    <text class="mybar-rank">{{myRank.rank}} / {{memberCount}}</text>
+    <text class="mybar-score">{{myRank.score}} 题</text>
+  </view>
+</view>

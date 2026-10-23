@@ -1,0 +1,24 @@
+<view class="page">
+  <view class="brand">
+    <view class="logo">LC</view>
+    <view class="title">工作室刷题榜</view>
+    <view class="sub">绑定力扣主页，每小时同步一次</view>
+  </view>
+
+  <view class="actions">
+    <button class="btn-wechat" loading="{{loading}}" disabled="{{loading}}" bindtap="onWechatLogin">
+      <text class="icon">微信</text>
+      <text>微信一键登录</text>
+    </button>
+
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+
+    <view class="agree" bindtap="toggleAgree">
+      <view class="checkbox {{agreed ? 'checked' : ''}}">{{agreed ? '✓' : ''}}</view>
+      <text class="agree-text">我已阅读并同意</text>
+      <text class="link" catchtap="showAgreement">《用户协议与隐私政策》</text>
+    </view>
+  </view>
+
+  <view class="foot">仅读取力扣公开数据 · 不涉及账号密码</view>
+</view>

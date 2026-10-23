@@ -1,0 +1,30 @@
+<view class="page">
+  <view class="card center">
+    <button class="avatar-btn" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
+      <image class="avatar" src="{{avatarUrl || '/images/icons/avatar.png'}}" mode="aspectFill" />
+      <view class="badge" wx:if="{{uploading}}">上传中…</view>
+      <view class="badge" wx:else>换头像</view>
+    </button>
+    <view class="muted hint">点头像可以直接用微信头像</view>
+  </view>
+
+  <view class="card">
+    <view class="label">昵称</view>
+    <input
+      class="input"
+      type="nickname"
+      value="{{nickname}}"
+      placeholder="点击输入框可选用微信昵称"
+      placeholder-class="ph"
+      maxlength="16"
+      bindinput="onNicknameInput"
+    />
+    <view class="muted tip">这个昵称会显示在排行榜上，1–16 个字符</view>
+  </view>
+
+  <view class="card">
+    <button class="btn-primary" loading="{{saving}}" disabled="{{saving || uploading}}" bindtap="onSave">
+      保存
+    </button>
+  </view>
+</view>

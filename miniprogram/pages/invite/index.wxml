@@ -1,0 +1,23 @@
+<view class="page">
+  <view class="hero">
+    <view class="title">工作室刷题榜</view>
+    <view class="muted desc">小范围内测中，请输入负责人给你的邀请码</view>
+  </view>
+
+  <view class="card">
+    <input
+      class="input"
+      value="{{invite}}"
+      placeholder="例如 CLASS2026"
+      placeholder-class="ph"
+      maxlength="20"
+      bindinput="onInput"
+    />
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+    <button class="btn-primary mt" loading="{{submitting}}" disabled="{{submitting}}" bindtap="onSubmit">
+      进入
+    </button>
+  </view>
+
+  <view class="muted foot">没有邀请码？找负责人要一个，一个人一个，用完即止</view>
+</view>

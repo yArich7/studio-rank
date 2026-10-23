@@ -1,0 +1,9 @@
+# 敏感配置
+.env
+
+# 运行时数据（db.json / uploads / backups）
+data/
+
+# 依赖
+node_modules/
+logs/

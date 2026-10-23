@@ -1,0 +1,28 @@
+# 依赖
+node_modules/
+pnpm-store/
+
+# 敏感配置（含 AppSecret / AUTH_SECRET）
+.env
+.env.*
+!.env.example
+
+# 运行时数据（用户数据、上传的头像、备份）
+server/data/
+server/logs/
+
+# 小程序编译产物
+miniprogram_npm/
+miniprogram/**/*.js.map
+
+# 系统 / 编辑器
+.DS_Store
+Thumbs.db
+*.log
+.idea/
+.vscode/
+
+# 临时文件
+*.tgz
+*.zip
+project.private.config.json

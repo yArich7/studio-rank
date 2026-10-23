@@ -1,0 +1,15 @@
+{
+  "name": "codeproject-server",
+  "version": "1.0.0",
+  "private": true,
+  "description": "班级 LeetCode 刷题榜后端（零依赖）",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "DEV_MODE=1 PORT=3000 node index.js",
+    "check": "node --check index.js && node --check routes.js && node --check sync.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,22 @@
+.profile { display: flex; align-items: center; }
+.avatar { width: 120rpx; height: 120rpx; border-radius: 50%; background: var(--line); }
+.meta { flex: 1; margin-left: 24rpx; }
+.nickname { font-size: 34rpx; font-weight: 600; }
+.status {
+  font-size: 22rpx;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+}
+.menu { padding: 0 32rpx; }
+.menu-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 32rpx 0;
+  border-bottom: 1rpx solid var(--line);
+}
+.menu-item:last-child { border-bottom: none; }
+.arrow { color: var(--text-weak); }
+.foot { text-align: center; margin-top: 40rpx; }

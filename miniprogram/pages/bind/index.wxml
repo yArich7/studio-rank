@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="card">
+    <view class="label">力扣主页链接</view>
+    <textarea
+      class="input"
+      value="{{link}}"
+      placeholder="https://leetcode.cn/u/your-name/"
+      placeholder-class="ph"
+      auto-height
+      bindinput="onInput"
+    />
+    <view class="muted link-tip" bindtap="onPasteTip">怎么拿到链接？</view>
+
+    <button class="btn-primary mt" loading="{{checking}}" disabled="{{!link || checking}}" bindtap="onCheck">
+      校验主页
+    </button>
+
+    <view wx:if="{{error}}" class="error">{{error}}</view>
+  </view>
+
+  <view wx:if="{{preview}}" class="card preview">
+    <view class="preview-title">确认是本人</view>
+    <view class="preview-body">
+      <image class="avatar" src="{{preview.avatarUrl || '/images/icons/avatar.png'}}" mode="aspectFill" />
+      <view class="preview-meta">
+        <view class="nickname">{{preview.realName || preview.slug}}</view>
+        <view class="muted">累计通过 {{preview.totalAc}} 题</view>
+        <view class="muted">{{preview.slug}}</view>
+      </view>
+    </view>
+    <view class="diff">
+      <text class="easy">简单 {{preview.easy}}</text>
+      <text class="medium">中等 {{preview.medium}}</text>
+      <text class="hard">困难 {{preview.hard}}</text>
+    </view>
+    <button class="btn-primary mt" loading="{{saving}}" bindtap="onConfirm">确认绑定</button>
+    <view class="muted center">绑定后每小时自动同步一次，仅读取公开数据</view>
+  </view>
+
+  <view class="card rules">
+    <view class="rules-title">规则</view>
+    <view class="rule">· 一个力扣账号只能绑定一个成员</view>
+    <view class="rule">· 你的刷题数会公开</view>
+  </view>
+</view>

@@ -1,0 +1,51 @@
+<view class="page">
+  <view wx:if="{{loading}}" class="muted tip">加载中…</view>
+
+  <block wx:elif="{{stats}}">
+    <view class="grid card">
+      <view class="cell">
+        <view class="num">{{stats.today}}</view>
+        <view class="muted">今日</view>
+      </view>
+      <view class="cell">
+        <view class="num">{{stats.week}}</view>
+        <view class="muted">本周</view>
+      </view>
+      <view class="cell">
+        <view class="num">{{stats.month}}</view>
+        <view class="muted">本月</view>
+      </view>
+      <view class="cell">
+        <view class="num">{{stats.total}}</view>
+        <view class="muted">总计</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="card-title">难度分布</view>
+      <view class="diff-row">
+        <text class="diff-label easy">简单</text>
+        <view class="bar"><view class="bar-inner easy-bg" style="width: {{stats.byDifficulty.easy}}%"></view></view>
+        <text class="diff-num">{{stats.byDifficulty.easy}}</text>
+      </view>
+      <view class="diff-row">
+        <text class="diff-label medium">中等</text>
+        <view class="bar"><view class="bar-inner medium-bg" style="width: {{stats.byDifficulty.medium}}%"></view></view>
+        <text class="diff-num">{{stats.byDifficulty.medium}}</text>
+      </view>
+      <view class="diff-row">
+        <text class="diff-label hard">困难</text>
+        <view class="bar"><view class="bar-inner hard-bg" style="width: {{stats.byDifficulty.hard}}%"></view></view>
+        <text class="diff-num">{{stats.byDifficulty.hard}}</text>
+      </view>
+    </view>
+
+    <view class="muted tip">更新于 {{stats.updatedAt}}</view>
+  </block>
+
+  <view wx:else class="empty">
+    <view class="empty-title">还没有数据</view>
+    <view class="muted">绑定力扣主页后，每小时自动同步一次</view>
+    <button class="btn-primary empty-btn" bindtap="goBind">去绑定</button>
+  </view>
+</view>

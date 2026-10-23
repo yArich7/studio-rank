@@ -1,0 +1,6 @@
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "刷题榜",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark"
+}
