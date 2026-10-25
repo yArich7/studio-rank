@@ -2,6 +2,12 @@
   <view wx:if="{{loading}}" class="muted tip">加载中…</view>
 
   <block wx:elif="{{stats}}">
+    <view class="card profile" wx:if="{{stats.profile}}">
+      <image class="lc-avatar" src="{{stats.profile.avatarUrl}}" mode="aspectFill" />
+      <view class="lc-name">{{stats.profile.slug}}</view>
+      <view class="lc-link" bindtap="copyProfileUrl">{{stats.profile.url}}</view>
+    </view>
+
     <view class="grid card">
       <view class="cell">
         <view class="num">{{stats.today}}</view>

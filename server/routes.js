@@ -314,11 +314,18 @@ function stats(openid) {
   const hard = acc.hard || 0
   const sum = easy + medium + hard || 1
 
+  const site = acc.site === 'com' ? 'leetcode.com' : 'leetcode.cn'
   return ok({
     today: todayCount,
     week: weekCount,
     month: monthCount,
     total: acc.totalAc || 0,
+    // 数据页顶部展示的力扣主页信息
+    profile: {
+      slug: acc.slug,
+      avatarUrl: acc.avatarUrl || '',
+      url: `https://${site}/u/${acc.slug}/`
+    },
     byDifficulty: {
       easy: Math.round((easy / sum) * 100),
       medium: Math.round((medium / sum) * 100),

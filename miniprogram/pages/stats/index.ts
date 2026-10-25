@@ -22,6 +22,15 @@ Page({
     }
   },
 
+  copyProfileUrl() {
+    const url = this.data.stats && this.data.stats.profile && this.data.stats.profile.url
+    if (!url) return
+    wx.setClipboardData({
+      data: url,
+      success: () => wx.showToast({ title: '主页链接已复制', icon: 'none' }),
+    })
+  },
+
   goBind() {
     wx.navigateTo({ url: '/pages/bind/index' })
   },

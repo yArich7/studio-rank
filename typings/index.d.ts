@@ -47,7 +47,14 @@ interface RankResult {
   updatedAt: string
 }
 
+interface LcProfile {
+  slug: string
+  avatarUrl: string
+  url: string
+}
+
 interface StatsResult {
+  profile?: LcProfile | null
   period: string
   today: number
   week: number

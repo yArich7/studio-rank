@@ -1,4 +1,32 @@
 .page { padding-bottom: 40rpx; }
+
+.profile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40rpx 32rpx 32rpx;
+}
+.lc-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  background: var(--line);
+}
+.lc-name {
+  margin-top: 20rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: var(--text-main);
+}
+.lc-link {
+  margin-top: 8rpx;
+  font-size: 22rpx;
+  color: var(--text-weak);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 .tip { text-align: center; padding: 24rpx; }
 
 .grid { display: flex; flex-wrap: wrap; }
