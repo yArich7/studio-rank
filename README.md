@@ -145,7 +145,16 @@ node scripts/e2e.js
 
 ## 上线部署
 
-完整步骤见 [server/DEPLOY.md](server/DEPLOY.md)：服务器准备 → `.env` 配置 → pm2 守护 → Nginx + Let's Encrypt → 小程序域名白名单。
+一键脚本（推荐）：
+
+```bash
+scp scripts/deploy.sh root@your-server:/root/
+ssh root@your-server 'bash /root/deploy.sh'
+```
+
+自动完成：装 Node/pm2 → 克隆仓库 → 生成 `.env` → pm2 启动 → 健康检查。幂等，可重复执行。
+
+手动步骤见 [server/DEPLOY.md](server/DEPLOY.md)：服务器准备 → `.env` 配置 → pm2 守护 → Nginx + Let's Encrypt → 小程序域名白名单。
 
 关键三点：
 

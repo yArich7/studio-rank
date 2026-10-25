@@ -2,6 +2,30 @@
 
 目标：一台 Linux 服务器 + 已备案域名，从 GitHub 拉代码跑起来，以后用 `git pull` 更新。
 
+## 一键部署（推荐）
+
+```bash
+# 把脚本传到服务器（或直接 curl 下载）
+scp scripts/deploy.sh root@your-server:/root/
+
+ssh root@your-server
+bash /root/deploy.sh
+```
+
+脚本会依次完成：装 git/node/pm2 → 克隆仓库 → 交互式生成 `.env` → pm2 启动 → 健康检查。
+
+非交互（重复部署 / CI）：
+
+```bash
+APPID=wx... APPSECRET=... INVITE_CODES=ABCDE bash deploy.sh --yes
+```
+
+幂等：`.env` 已存在会跳过，已部署会 `git pull` + `pm2 reload`。
+
+> 仓库如果还是私有的，先按下一节配好 Deploy Key，再执行脚本。
+
+下面是想手动控制每一步时的完整流程。
+
 ## 0. 准备
 
 | 项 | 说明 |
