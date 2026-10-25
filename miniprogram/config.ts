@@ -9,5 +9,5 @@
 export const API_BASE = 'http://172.20.10.3:3000'
 
 export const TOKEN_KEY = 'auth_token'
-export const USER_KEY = 'auth_user'
+export const USER_KEY = 'auth_user_v2'
 export const LAST_ERROR_KEY = 'last_login_error'

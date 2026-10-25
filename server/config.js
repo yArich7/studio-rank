@@ -43,7 +43,6 @@ const config = {
   inviteLimit: Number(process.env.INVITE_LIMIT || 50),
 
   dataDir: process.env.DATA_DIR || path.join(root, 'data'),
-  publicBase: process.env.PUBLIC_BASE || '',
   syncMinute: Number(process.env.SYNC_MINUTE || 5),
 
   // 单用户每小时最多几次同步（含手动）
@@ -67,9 +66,6 @@ function validate() {
 
   if (config.devMode) {
     console.warn('[config] 开发模式：跳过微信登录校验，邀请码缺失时放行')
-  }
-  if (!config.publicBase) {
-    config.publicBase = `http://localhost:${config.port}`
   }
   return config
 }

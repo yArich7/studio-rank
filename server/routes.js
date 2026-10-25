@@ -163,7 +163,8 @@ async function uploadAvatar(openid, req) {
   fs.writeFileSync(path.join(store.UPLOAD_DIR, name), file.data)
 
   logger.info('头像上传', { openid, ext, size: file.data.length })
-  return ok({ url: `${config.publicBase}/uploads/${name}` })
+  // 只返回相对路径：换 IP / 换域名时头像不会失效
+  return ok({ url: `/uploads/${name}` })
 }
 
 async function bindLeetcode(openid, body) {

@@ -68,7 +68,6 @@ vi .env
 | `ADMIN_TOKEN` | 手动同步口令 |
 | `INVITE_CODES` | 邀请码，逗号分隔 |
 | `INVITE_LIMIT` | 使用次数上限，默认 50 |
-| `PUBLIC_BASE` | `https://your-domain.com`（头像 URL 用） |
 
 **生产环境不要设 `DEV_MODE=1`**，否则任何人绕过微信登录。
 生产环境缺 `APPID` / `AUTH_SECRET` / `INVITE_CODES` 时进程会直接拒绝启动。
@@ -162,6 +161,5 @@ curl -X POST http://127.0.0.1:3000/api/sync -H "X-Admin-Token: $ADMIN_TOKEN"
 | --- | --- |
 | 启动即退出，打印"启动失败，请补齐以下配置" | `.env` 缺必填项 |
 | 小程序报"连不上服务" | request 合法域名没配，或没用 HTTPS |
-| 头像显示不出来 | `PUBLIC_BASE` 没设成公网域名 |
 | 登录一直失败 | 生产环境没配 `APPID` / `APPSECRET` |
 | 数据不更新 | 进程没跑（`pm2 status`），或力扣接口变了（看日志） |

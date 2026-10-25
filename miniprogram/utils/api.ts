@@ -16,6 +16,18 @@ export class ApiError extends Error {
   }
 }
 
+/** 把服务端返回的相对路径（/uploads/x.jpg）补成完整地址；外链原样返回 */
+export function resolveUrl(url: string): string {
+  if (!url) return ''
+  return url.startsWith('/') ? `${API_BASE}${url}` : url
+}
+
+/** 保存前把完整地址还原成相对路径，避免把 IP 写进数据库 */
+export function toStoragePath(url: string): string {
+  if (!url) return ''
+  return url.startsWith(API_BASE) ? url.slice(API_BASE.length) : url
+}
+
 export function getToken(): string {
   return wx.getStorageSync(TOKEN_KEY) || ''
 }

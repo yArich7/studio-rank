@@ -1,4 +1,4 @@
-import { request, toastError, ensureLogin } from '../../utils/api'
+import { request, toastError, ensureLogin, resolveUrl } from '../../utils/api'
 
 Page({
   data: {
@@ -39,7 +39,7 @@ Page({
       await ensureLogin()
       const res = await request<RankResult>(`/api/rank?period=${this.data.period}`)
       this.setData({
-        list: res.list,
+        list: res.list.map((row) => ({ ...row, avatarUrl: resolveUrl(row.avatarUrl) })),
         myRank: res.myRank,
         memberCount: res.memberCount,
         updatedAt: res.updatedAt,

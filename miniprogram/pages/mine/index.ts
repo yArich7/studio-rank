@@ -1,4 +1,4 @@
-import { ensureLogin, refreshUser, toastError } from '../../utils/api'
+import { ensureLogin, refreshUser, toastError, resolveUrl } from '../../utils/api'
 
 Page({
   data: {
@@ -14,7 +14,7 @@ Page({
     try {
       const user = await ensureLogin()
       getApp<IAppOption>().globalData.user = user
-      this.setData({ user, loading: false })
+      this.setData({ user: { ...user, avatarUrl: resolveUrl(user.avatarUrl) }, loading: false })
     } catch (err) {
       this.setData({ loading: false })
       toastError(err)

@@ -1,9 +1,10 @@
-import { ensureLogin, updateProfile, uploadAvatar, toastError } from '../../utils/api'
+import { ensureLogin, updateProfile, uploadAvatar, toastError, resolveUrl } from '../../utils/api'
 
 Page({
   data: {
     nickname: '',
-    avatarUrl: '',
+    avatarUrl: '',      // 显示用（完整地址）
+    avatarPath: '',     // 存储用（相对路径）
     uploading: false,
     saving: false,
   },
@@ -11,7 +12,11 @@ Page({
   async onLoad() {
     try {
       const user = await ensureLogin()
-      this.setData({ nickname: user.nickname, avatarUrl: user.avatarUrl })
+      this.setData({
+        nickname: user.nickname,
+        avatarPath: user.avatarUrl,
+        avatarUrl: resolveUrl(user.avatarUrl),
+      })
     } catch (err) {
       toastError(err)
     }
@@ -25,7 +30,7 @@ Page({
     this.setData({ uploading: true, avatarUrl: tempPath })
     try {
       const { url } = await uploadAvatar(tempPath)
-      this.setData({ avatarUrl: url })
+      this.setData({ avatarPath: url, avatarUrl: resolveUrl(url) })
     } catch (err) {
       toastError(err)
     } finally {
@@ -50,7 +55,7 @@ Page({
 
     this.setData({ saving: true })
     try {
-      await updateProfile({ nickname, avatarUrl: this.data.avatarUrl })
+      await updateProfile({ nickname, avatarUrl: this.data.avatarPath })
       wx.showToast({ title: '已保存', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 600)
     } catch (err) {
