@@ -48,6 +48,7 @@ interface RankResult {
 }
 
 interface LcProfile {
+  name: string
   slug: string
   avatarUrl: string
   url: string

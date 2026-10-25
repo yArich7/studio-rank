@@ -4,7 +4,7 @@
   <block wx:elif="{{stats}}">
     <view class="card profile" wx:if="{{stats.profile}}">
       <image class="lc-avatar" src="{{stats.profile.avatarUrl}}" mode="aspectFill" />
-      <view class="lc-name">{{stats.profile.slug}}</view>
+      <view class="lc-name">{{stats.profile.name}}</view>
       <view class="lc-link" bindtap="copyProfileUrl">{{stats.profile.url}}</view>
     </view>
 

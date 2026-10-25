@@ -322,6 +322,8 @@ function stats(openid) {
     total: acc.totalAc || 0,
     // 数据页顶部展示的力扣主页信息
     profile: {
+      // realName 才是力扣页面上显示的用户名，slug 只是 URL 里的 ID
+      name: acc.realName || acc.slug,
       slug: acc.slug,
       avatarUrl: acc.avatarUrl || '',
       url: `https://${site}/u/${acc.slug}/`
