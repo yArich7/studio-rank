@@ -1,4 +1,4 @@
-import { API_BASE, TOKEN_KEY, USER_KEY } from '../config'
+import { API_BASE, TOKEN_KEY, USER_KEY, LAST_ERROR_KEY } from '../config'
 
 interface ApiResponse<T> {
   ok: boolean
@@ -115,6 +115,8 @@ export async function ensureLogin(): Promise<IUser> {
     if (err instanceof ApiError && err.code === 'NEED_INVITE') {
       goInvite()
     } else {
+      // 记录失败原因，登录页会显示出来，避免用户一脸茫然
+      wx.setStorageSync(LAST_ERROR_KEY, err instanceof Error ? err.message : '登录失败')
       goLogin()
     }
     throw err

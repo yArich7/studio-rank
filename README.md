@@ -58,8 +58,12 @@ cd server && npm run dev          # http://localhost:3000
 cp server/.env.example server/.env   # 填 APPID / INVITE_CODES 等
 
 # 2. 小程序配置
-# miniprogram/config.ts 里 API_BASE 保持 http://localhost:3000
+# miniprogram/config.ts 里的 API_BASE：
+#   模拟器        → http://localhost:3000
+#   真机调试      → http://<电脑内网IP>:3000   （手机上的 localhost 是手机自己）
+#                   查 IP：ipconfig getifaddr en0
 # 开发者工具：详情 → 本地设置 → 勾选「不校验合法域名、web-view、TLS 版本以及 HTTPS 证书」
+# 真机调试还需：手机和电脑在同一 Wi-Fi / 热点
 
 # 3. 打开项目，编译预览
 ```

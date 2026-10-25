@@ -1,4 +1,5 @@
 import { login, ApiError, getToken, goInvite } from '../../utils/api'
+import { LAST_ERROR_KEY } from '../../config'
 
 Page({
   data: {
@@ -46,6 +47,12 @@ Page({
     // 已登录则直接回榜单
     if (getToken()) {
       wx.switchTab({ url: '/pages/rank/index' })
+      return
+    }
+    const reason = wx.getStorageSync(LAST_ERROR_KEY)
+    if (reason) {
+      this.setData({ error: `自动登录失败：${reason}` })
+      wx.removeStorageSync(LAST_ERROR_KEY)
     }
   },
 })
