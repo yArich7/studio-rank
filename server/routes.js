@@ -138,7 +138,10 @@ async function updateProfile(openid, body) {
   }
   if (body.avatarUrl !== undefined) {
     const value = String(body.avatarUrl)
-    if (value && !/^https?:\/\//.test(value)) throw new Error('头像地址不合法')
+    // 允许两类：本站上传的相对路径，或外部 https 图片（如力扣头像）
+    const isLocalUpload = /^\/uploads\/[A-Za-z0-9_-]+\.(png|jpg|jpeg|webp)$/i.test(value)
+    const isExternal = /^https?:\/\/[^\s]+$/i.test(value)
+    if (value && !isLocalUpload && !isExternal) throw new Error('头像地址不合法')
     user.avatarUrl = value
   }
 
