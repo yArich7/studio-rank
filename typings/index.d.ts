@@ -11,6 +11,7 @@ interface IUser {
   openid: string
   nickname: string
   avatarUrl: string
+  avatarPath?: string
   createdAt?: string
   lastSeenAt?: string
 }

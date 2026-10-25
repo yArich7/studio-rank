@@ -77,6 +77,26 @@ function periodStart(period) {
   return '1970-01-01'
 }
 
+/**
+ * 把 /uploads/xxx.jpg 读成 data URI 内联返回。
+ * 真机对 http 图片限制很多（域名、协议），内联后 <image> 直接渲染，不发请求。
+ * 超过 64KB 的图退回原 URL，避免响应体过大。
+ */
+function inlineAvatar(url) {
+  if (!url || !url.startsWith('/uploads/')) return url || ''
+  const name = url.slice('/uploads/'.length)
+  if (!/^[A-Za-z0-9_-]+\.(png|jpg|jpeg|webp)$/i.test(name)) return ''
+  try {
+    const buffer = fs.readFileSync(path.join(store.UPLOAD_DIR, name))
+    if (buffer.length > 64 * 1024) return url
+    const ext = name.split('.').pop().toLowerCase()
+    const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg'
+    return `data:${mime};base64,${buffer.toString('base64')}`
+  } catch (err) {
+    return ''
+  }
+}
+
 function ensureUser(openid) {
   const db = store.db()
   if (!db.users[openid]) {
@@ -124,7 +144,11 @@ async function login(body) {
   const user = ensureUser(openid)
   store.save()
   logger.info('登录', { openid, isNewUser })
-  return ok({ token: auth.sign(openid), user, isNewUser })
+  return ok({
+    token: auth.sign(openid),
+    user: { ...user, avatarPath: user.avatarUrl, avatarUrl: inlineAvatar(user.avatarUrl) },
+    isNewUser
+  })
 }
 
 async function updateProfile(openid, body) {
@@ -229,7 +253,7 @@ function rank(openid, period) {
       return {
         openid: user.openid,
         nickname: user.nickname || '刷题同学',
-        avatarUrl: user.avatarUrl || (acc && acc.avatarUrl) || '',
+        avatarUrl: inlineAvatar(user.avatarUrl || (acc && acc.avatarUrl) || ''),
         score: scoreByOpenid[user.openid] || 0,
         totalAc: (acc && acc.totalAc) || 0
       }

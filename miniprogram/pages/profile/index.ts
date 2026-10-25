@@ -14,7 +14,8 @@ Page({
       const user = await ensureLogin()
       this.setData({
         nickname: user.nickname,
-        avatarPath: user.avatarUrl,
+        // avatarPath 是相对路径（保存用），avatarUrl 可能已是内联 data URI（显示用）
+        avatarPath: user.avatarPath || user.avatarUrl,
         avatarUrl: resolveUrl(user.avatarUrl),
       })
     } catch (err) {
