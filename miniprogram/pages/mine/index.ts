@@ -4,6 +4,7 @@ Page({
   data: {
     user: null as IUser | null,
     loading: true,
+    avatarError: false,
   },
 
   onShow() {
@@ -29,6 +30,10 @@ Page({
     } catch (err) {
       toastError(err)
     }
+  },
+
+  onAvatarError() {
+    this.setData({ avatarError: true })
   },
 
   goProfile() {

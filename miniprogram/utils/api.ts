@@ -117,20 +117,36 @@ export async function login(invite?: string): Promise<IUser> {
  *   1. 新用户 → 邀请码页
  *   2. 静默失败（网络/配置问题）→ 登录页兜底，可手动重试
  */
+const REFRESH_INTERVAL = 5 * 60 * 1000
+let lastRefreshAt = 0
+
 export async function ensureLogin(): Promise<IUser> {
   const cached = getCachedUser()
-  if (getToken() && cached) return cached
+
+  // 5 分钟内直接用缓存，避免每次切页面都打一次 /api/login
+  if (cached && getToken() && Date.now() - lastRefreshAt < REFRESH_INTERVAL) {
+    return cached
+  }
 
   try {
-    return await login()
+    const user = await login()
+    lastRefreshAt = Date.now()
+    return user
   } catch (err) {
+    // 新用户：去邀请码页
     if (err instanceof ApiError && err.code === 'NEED_INVITE') {
       goInvite()
-    } else {
-      // 记录失败原因，登录页会显示出来，避免用户一脸茫然
-      wx.setStorageSync(LAST_ERROR_KEY, err instanceof Error ? err.message : '登录失败')
-      goLogin()
+      throw err
     }
+
+    // 网络异常：先用缓存兜底，让用户还能看看旧数据
+    if (cached && getToken()) {
+      return cached
+    }
+
+    // 彻底没有登录态：记录原因并去登录页
+    wx.setStorageSync(LAST_ERROR_KEY, err instanceof Error ? err.message : '登录失败')
+    goLogin()
     throw err
   }
 }
