@@ -26,3 +26,6 @@ Thumbs.db
 *.tgz
 *.zip
 project.private.config.json
+
+# 截图（含个人昵称头像，不公开）
+docs/screenshots/
