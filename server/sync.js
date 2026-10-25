@@ -5,6 +5,8 @@ const { fetchProfile, fetchRecentAC } = require('./leetcode')
 const logger = require('./logger')
 
 const CONCURRENCY = 3
+// 用户名、头像这类资料不用每小时拉，一天一次足够
+const PROFILE_TTL = 24 * 3600 * 1000
 
 function todayInShanghai() {
   const now = new Date(Date.now() + 8 * 3600 * 1000)
@@ -75,16 +77,23 @@ async function syncOne(account, today) {
     updatedAt: new Date().toISOString()
   }
 
-  Object.assign(db.accounts[account.openid], {
+  const lastProfileAt = account.profileUpdatedAt ? Date.parse(account.profileUpdatedAt) : 0
+  const refreshProfile = Date.now() - lastProfileAt > PROFILE_TTL
+
+  const patch = {
     totalAc: profile.totalAc,
     easy: profile.easy,
     medium: profile.medium,
     hard: profile.hard,
-    avatarUrl: profile.avatarUrl,
-    realName: profile.realName,
-    ranking: profile.ranking,
     updatedAt: new Date().toISOString()
-  })
+  }
+  if (refreshProfile) {
+    patch.avatarUrl = profile.avatarUrl
+    patch.realName = profile.realName
+    patch.ranking = profile.ranking
+    patch.profileUpdatedAt = new Date().toISOString()
+  }
+  Object.assign(db.accounts[account.openid], patch)
 
   store.save()
   const todayRow = db.stats[store.statsKey(account.openid, today)]

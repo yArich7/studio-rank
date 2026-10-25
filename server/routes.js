@@ -225,6 +225,7 @@ async function bindLeetcode(openid, body) {
     ...profile,
     // 首次绑定的时间：周/月榜只能统计这之后的新增
     boundAt: (existing && existing.boundAt) || new Date().toISOString(),
+    profileUpdatedAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
   }
   store.save()
@@ -312,7 +313,6 @@ function stats(openid) {
   const easy = acc.easy || 0
   const medium = acc.medium || 0
   const hard = acc.hard || 0
-  const sum = easy + medium + hard || 1
 
   const site = acc.site === 'com' ? 'leetcode.com' : 'leetcode.cn'
   return ok({
@@ -328,11 +328,8 @@ function stats(openid) {
       avatarUrl: acc.avatarUrl || '',
       url: `https://${site}/u/${acc.slug}/`
     },
-    byDifficulty: {
-      easy: Math.round((easy / sum) * 100),
-      medium: Math.round((medium / sum) * 100),
-      hard: Math.round((hard / sum) * 100)
-    },
+    // 数量，不是百分比
+    byDifficulty: { easy, medium, hard },
     updatedAt: acc.updatedAt
       ? new Date(acc.updatedAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
       : ''

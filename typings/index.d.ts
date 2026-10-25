@@ -61,7 +61,7 @@ interface StatsResult {
   week: number
   month: number
   total: number
-  byDifficulty: { easy: number; medium: number; hard: number }
+  byDifficulty: { easy: number; medium: number; hard: number }  // 数量
   updatedAt: string
 }
 

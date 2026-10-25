@@ -31,17 +31,17 @@
       <view class="card-title">难度分布</view>
       <view class="diff-row">
         <text class="diff-label easy">简单</text>
-        <view class="bar"><view class="bar-inner easy-bg" style="width: {{stats.byDifficulty.easy}}%"></view></view>
+        <view class="bar"><view class="bar-inner easy-bg" style="width: {{bars.easy}}%"></view></view>
         <text class="diff-num">{{stats.byDifficulty.easy}}</text>
       </view>
       <view class="diff-row">
         <text class="diff-label medium">中等</text>
-        <view class="bar"><view class="bar-inner medium-bg" style="width: {{stats.byDifficulty.medium}}%"></view></view>
+        <view class="bar"><view class="bar-inner medium-bg" style="width: {{bars.medium}}%"></view></view>
         <text class="diff-num">{{stats.byDifficulty.medium}}</text>
       </view>
       <view class="diff-row">
         <text class="diff-label hard">困难</text>
-        <view class="bar"><view class="bar-inner hard-bg" style="width: {{stats.byDifficulty.hard}}%"></view></view>
+        <view class="bar"><view class="bar-inner hard-bg" style="width: {{bars.hard}}%"></view></view>
         <text class="diff-num">{{stats.byDifficulty.hard}}</text>
       </view>
     </view>
