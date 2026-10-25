@@ -32,4 +32,5 @@
   </view>
 
   <view class="muted foot">数据来自力扣公开主页，每小时同步一次</view>
+  <view class="muted foot">版本 {{build}}</view>
 </view>

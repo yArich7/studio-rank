@@ -1,10 +1,13 @@
-import { ensureLogin, refreshUser, toastError, resolveUrl } from '../../utils/api'
+import { ensureLogin, refreshUser, toastError } from '../../utils/api'
+import { resolveAvatar } from '../../utils/avatar'
+import { BUILD } from '../../config'
 
 Page({
   data: {
     user: null as IUser | null,
     loading: true,
     avatarError: false,
+    build: BUILD,
   },
 
   onShow() {
@@ -15,7 +18,10 @@ Page({
     try {
       const user = await ensureLogin()
       getApp<IAppOption>().globalData.user = user
-      this.setData({ user: { ...user, avatarUrl: resolveUrl(user.avatarUrl) }, loading: false })
+      this.setData({
+        user: { ...user, avatarUrl: resolveAvatar(user.avatarUrl, 'me') },
+        loading: false,
+      })
     } catch (err) {
       this.setData({ loading: false })
       toastError(err)

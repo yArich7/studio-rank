@@ -1,4 +1,5 @@
-import { ensureLogin, updateProfile, uploadAvatar, toastError, resolveUrl } from '../../utils/api'
+import { ensureLogin, updateProfile, uploadAvatar, toastError } from '../../utils/api'
+import { resolveAvatar } from '../../utils/avatar'
 
 Page({
   data: {
@@ -16,7 +17,7 @@ Page({
         nickname: user.nickname,
         // avatarPath 是相对路径（保存用），avatarUrl 可能已是内联 data URI（显示用）
         avatarPath: user.avatarPath || user.avatarUrl,
-        avatarUrl: resolveUrl(user.avatarUrl),
+        avatarUrl: resolveAvatar(user.avatarUrl, 'me'),
       })
     } catch (err) {
       toastError(err)
@@ -31,7 +32,7 @@ Page({
     this.setData({ uploading: true, avatarUrl: tempPath })
     try {
       const { url } = await uploadAvatar(tempPath)
-      this.setData({ avatarPath: url, avatarUrl: resolveUrl(url) })
+      this.setData({ avatarPath: url, avatarUrl: resolveAvatar(url, 'me') })
     } catch (err) {
       toastError(err)
     } finally {
