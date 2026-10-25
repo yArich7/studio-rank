@@ -174,7 +174,7 @@ export async function refreshUser(): Promise<IUser> {
   return login()
 }
 
-export function uploadAvatar(filePath: string): Promise<{ url: string }> {
+export function uploadAvatar(filePath: string): Promise<UploadResult> {
   return new Promise((resolve, reject) => {
     wx.uploadFile({
       url: `${API_BASE}/api/upload`,
@@ -183,8 +183,8 @@ export function uploadAvatar(filePath: string): Promise<{ url: string }> {
       header: { Authorization: `Bearer ${getToken()}` },
       success(res) {
         try {
-          const body = JSON.parse(res.data) as ApiResponse<{ url: string }>
-          if (body.ok) resolve(body.data as { url: string })
+          const body = JSON.parse(res.data) as ApiResponse<UploadResult>
+          if (body.ok) resolve(body.data as UploadResult)
           else reject(new ApiError(body.error || '上传失败', body.code))
         } catch (err) {
           reject(new ApiError('上传返回异常'))

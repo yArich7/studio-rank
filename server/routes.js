@@ -170,7 +170,10 @@ async function updateProfile(openid, body) {
   }
 
   store.save()
-  return ok({ user })
+  // 和 /api/login 保持一致：avatarUrl 内联（供显示），avatarPath 给保存用
+  return ok({
+    user: { ...user, avatarPath: user.avatarUrl, avatarUrl: inlineAvatar(user.avatarUrl) }
+  })
 }
 
 async function uploadAvatar(openid, req) {
@@ -190,8 +193,12 @@ async function uploadAvatar(openid, req) {
   fs.writeFileSync(path.join(store.UPLOAD_DIR, name), file.data)
 
   logger.info('头像上传', { openid, ext, size: file.data.length })
-  // 只返回相对路径：换 IP / 换域名时头像不会失效
-  return ok({ url: `/uploads/${name}` })
+  const mime = file.contentType
+  // url 用于存库（换 IP/域名不失效），dataUrl 用于前端立刻预览
+  return ok({
+    url: `/uploads/${name}`,
+    dataUrl: `data:${mime};base64,${file.data.toString('base64')}`
+  })
 }
 
 async function bindLeetcode(openid, body) {

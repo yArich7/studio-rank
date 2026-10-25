@@ -56,3 +56,8 @@ interface StatsResult {
   byDifficulty: { easy: number; medium: number; hard: number }
   updatedAt: string
 }
+
+interface UploadResult {
+  url: string
+  dataUrl: string
+}

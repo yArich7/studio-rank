@@ -31,8 +31,9 @@ Page({
 
     this.setData({ uploading: true, avatarUrl: tempPath })
     try {
-      const { url } = await uploadAvatar(tempPath)
-      this.setData({ avatarPath: url, avatarUrl: resolveAvatar(url, 'me') })
+      const { url, dataUrl } = await uploadAvatar(tempPath)
+      // 存库用相对路径，预览用 dataUrl（真机不走 http 图片）
+      this.setData({ avatarPath: url, avatarUrl: resolveAvatar(dataUrl, 'me') })
     } catch (err) {
       toastError(err)
     } finally {
