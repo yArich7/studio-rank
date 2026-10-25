@@ -30,6 +30,8 @@ const devMode = process.env.DEV_MODE === '1'
 const config = {
   root,
   port: Number(process.env.PORT || 3000),
+  // 生产环境建议 127.0.0.1，只让本机 Nginx 转发，不直接暴露端口
+  host: process.env.HOST || '0.0.0.0',
   devMode,
 
   appid: process.env.APPID || '',

@@ -66,8 +66,8 @@ const server = http.createServer(async (req, res) => {
   }
 })
 
-server.listen(config.port, () => {
-  logger.info(`服务已启动 http://localhost:${config.port}`, {
+server.listen(config.port, config.host, () => {
+  logger.info(`服务已启动 http://${config.host}:${config.port}`, {
     mode: config.devMode ? 'dev' : 'prod',
     dataDir: config.dataDir
   })
