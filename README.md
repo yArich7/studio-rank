@@ -20,6 +20,8 @@
 ```
 miniprogram/           小程序
 ├── config.ts          API 地址（本地 / 上线要改）
+├── config.ts          业务常量（API 地址从 config.local 读）
+├── config.local.ts    本机生成，不进版本库
 ├── pages/login        登录页（仅静默失败时兜底）
 ├── pages/rank         榜单（日/周/月/总）
 ├── pages/stats        我的数据
@@ -44,9 +46,38 @@ server/                后端（零第三方依赖）
 ├── .env.example       配置模板
 ├── DEPLOY.md          部署步骤
 └── data/              db.json / uploads / backups（自动生成）
-scripts/e2e.js         模拟器自动化测试（截图 / 端到端）
+config/
+├── app.config.example.json   配置模板（提交）
+└── app.config.json           本机配置（不提交）
+scripts/
+├── setup.mjs          读配置生成本机文件
+└── e2e*.js            模拟器自动化测试
 typings/               全局类型
 ```
+
+## 首次配置
+
+仓库里**不含 AppID 和 API 地址**，克隆后需要生成一次：
+
+```bash
+cp config/app.config.example.json config/app.config.json
+# 编辑 config/app.config.json，填写 appid 与 apiBase
+node scripts/setup.mjs
+```
+
+`app.config.json` 只有两个字段：
+
+| 字段 | 说明 |
+| --- | --- |
+| `appid` | 小程序 AppID（mp 后台 → 开发管理 → 开发设置） |
+| `apiBase` | 后端地址：模拟器填 `http://localhost:3000`，真机填电脑内网 IP，线上填 `https://域名` |
+
+脚本会生成两个**不进版本库**的文件：
+
+- `project.config.json` —— 开发者工具的项目配置（含 AppID）
+- `miniprogram/config.local.ts` —— 小程序编译进包的 API 地址
+
+换了网络或部署到线上，只要改 `app.config.json` 重新跑一次，不用动代码。
 
 ## 本地跑起来
 
