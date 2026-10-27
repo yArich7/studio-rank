@@ -1,5 +1,8 @@
 import { callApi, toastError, ensureLogin } from '../../utils/api'
 
+const CACHE_KEY = 'stats_cache'
+const CACHE_FRESH = 60 * 1000
+
 Page({
   data: {
     stats: null as StatsResult | null,
@@ -8,11 +11,26 @@ Page({
   },
 
   onShow() {
-    void this.load()
+    this.applyCache()
   },
 
-  async load() {
-    this.setData({ loading: true })
+  async onPullDownRefresh() {
+    await this.load(true)
+    wx.stopPullDownRefresh()
+  },
+
+  applyCache() {
+    const cached = wx.getStorageSync(CACHE_KEY)
+    if (!cached) {
+      void this.load()
+      return
+    }
+    this.setData({ ...cached.data, loading: false })
+    if (Date.now() - cached.at >= CACHE_FRESH) void this.load(true)
+  },
+
+  async load(silent = false) {
+    if (!silent) this.setData({ loading: true })
     try {
       await ensureLogin()
       const stats = await callApi<StatsResult>('stats')
@@ -29,10 +47,12 @@ Page({
         }
       }
 
-      this.setData({ stats, bars, loading: false })
+      const data = { stats, bars, loading: false }
+      this.setData(data)
+      wx.setStorageSync(CACHE_KEY, { data, at: Date.now() })
     } catch (err) {
       this.setData({ loading: false })
-      toastError(err)
+      if (!silent) toastError(err)
     }
   },
 

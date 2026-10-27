@@ -1,6 +1,9 @@
 import { callApi, toastError, ensureLogin } from '../../utils/api'
 import { resolveAvatar } from '../../utils/avatar'
 
+// 缓存 60 秒内不重复请求：切 tab 时先渲染缓存，后台再刷新
+const CACHE_FRESH = 60 * 1000
+
 Page({
   data: {
     periods: [
@@ -19,11 +22,11 @@ Page({
   },
 
   onShow() {
-    void this.load()
+    this.applyCache()
   },
 
   async onPullDownRefresh() {
-    await this.load()
+    await this.load(true)
     wx.stopPullDownRefresh()
   },
 
@@ -31,25 +34,43 @@ Page({
     const period = String(e.currentTarget.dataset.period || 'week')
     if (period === this.data.period) return
     this.setData({ period })
-    void this.load()
+    this.applyCache()
   },
 
-  async load() {
-    this.setData({ loading: true })
+  cacheKey(): string {
+    return `rank_cache_${this.data.period}`
+  },
+
+  /** 有缓存先渲染，避免切 tab 白屏 */
+  applyCache() {
+    const cached = wx.getStorageSync(this.cacheKey())
+    if (!cached) {
+      void this.load()
+      return
+    }
+    this.setData({ ...cached.data, loading: false })
+    if (Date.now() - cached.at >= CACHE_FRESH) void this.load(true)
+  },
+
+  async load(silent = false) {
+    const key = this.cacheKey()
+    if (!silent) this.setData({ loading: true })
     try {
       await ensureLogin()
       const res = await callApi<RankResult>('rank', { period: this.data.period })
-      this.setData({
+      const data = {
         list: res.list.map((row) => ({ ...row, avatarUrl: resolveAvatar(row.avatarUrl, row.openid) })),
         myRank: res.myRank,
         memberCount: res.memberCount,
         updatedAt: res.updatedAt,
         statsSince: res.statsSince || '',
         loading: false,
-      })
+      }
+      this.setData(data)
+      wx.setStorageSync(key, { data, at: Date.now() })
     } catch (err) {
       this.setData({ loading: false })
-      toastError(err)
+      if (!silent) toastError(err)
     }
   },
 

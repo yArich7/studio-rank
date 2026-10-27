@@ -1,1 +1,5 @@
-{ "usingComponents": {}, "navigationBarTitleText": "我的数据" }
+{
+  "usingComponents": {},
+  "navigationBarTitleText": "我的数据",
+  "enablePullDownRefresh": true
+}
