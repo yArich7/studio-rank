@@ -1,4 +1,4 @@
-import { login, ApiError, getToken, goInvite } from '../../utils/api'
+import { login, ApiError, getCachedUser, goInvite } from '../../utils/api'
 import { LAST_ERROR_KEY } from '../../config'
 
 Page({
@@ -45,7 +45,7 @@ Page({
 
   onShow() {
     // 已登录则直接回榜单
-    if (getToken()) {
+    if (getCachedUser()) {
       wx.switchTab({ url: '/pages/rank/index' })
       return
     }

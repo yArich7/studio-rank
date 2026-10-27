@@ -31,9 +31,9 @@ Page({
 
     this.setData({ uploading: true, avatarUrl: tempPath })
     try {
-      const { url, dataUrl } = await uploadAvatar(tempPath)
-      // 存库用相对路径，预览用 dataUrl（真机不走 http 图片）
-      this.setData({ avatarPath: url, avatarUrl: resolveAvatar(dataUrl, 'me') })
+      // 云存储 fileID，<image> 可直接渲染，无需再转本地文件
+      const fileID = await uploadAvatar(tempPath)
+      this.setData({ avatarPath: fileID, avatarUrl: fileID })
     } catch (err) {
       toastError(err)
     } finally {

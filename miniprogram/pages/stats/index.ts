@@ -1,4 +1,4 @@
-import { request, toastError, ensureLogin } from '../../utils/api'
+import { callApi, toastError, ensureLogin } from '../../utils/api'
 
 Page({
   data: {
@@ -15,7 +15,7 @@ Page({
     this.setData({ loading: true })
     try {
       await ensureLogin()
-      const stats = await request<StatsResult>('/api/stats')
+      const stats = await callApi<StatsResult>('stats')
 
       // 难度分布：显示数量，条形宽度按三档里的最大值等比缩放
       let bars = { easy: 0, medium: 0, hard: 0 }

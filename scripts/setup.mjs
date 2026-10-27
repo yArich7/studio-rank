@@ -31,21 +31,21 @@ try {
   process.exit(1)
 }
 
-const { appid, apiBase } = config
+const { appid, cloudEnv } = config
 const problems = []
 if (!appid || appid === 'wx0000000000000000') problems.push('appid 未填写')
-if (!apiBase) problems.push('apiBase 未填写')
+if (!cloudEnv) problems.push('cloudEnv 未填写')
 if (problems.length) {
   console.error('配置有问题：')
   for (const item of problems) console.error('  -', item)
   process.exit(1)
 }
 
-// 1) 小程序端 API 地址
+// 1) 小程序端云环境 ID
 writeFileSync(
   join(root, 'miniprogram/config.local.ts'),
   `// 由 scripts/setup.mjs 生成，不要手改；改配置请编辑 config/app.config.json\n` +
-  `export const API_BASE = '${apiBase}'\n`,
+  `export const CLOUD_ENV = '${cloudEnv}'\n`,
   'utf8'
 )
 
@@ -58,5 +58,5 @@ writeFileSync(
   'utf8'
 )
 
-console.log('✓ miniprogram/config.local.ts  API_BASE =', apiBase)
+console.log('✓ miniprogram/config.local.ts  CLOUD_ENV =', cloudEnv)
 console.log('✓ project.config.json         appid    =', appid)

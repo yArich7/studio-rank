@@ -1,4 +1,4 @@
-import { request, toastError, ensureLogin } from '../../utils/api'
+import { callApi, toastError, ensureLogin } from '../../utils/api'
 import { resolveAvatar } from '../../utils/avatar'
 
 Page({
@@ -38,7 +38,7 @@ Page({
     this.setData({ loading: true })
     try {
       await ensureLogin()
-      const res = await request<RankResult>(`/api/rank?period=${this.data.period}`)
+      const res = await callApi<RankResult>('rank', { period: this.data.period })
       this.setData({
         list: res.list.map((row) => ({ ...row, avatarUrl: resolveAvatar(row.avatarUrl, row.openid) })),
         myRank: res.myRank,

@@ -1,4 +1,4 @@
-import { request, toastError, ensureLogin } from '../../utils/api'
+import { callApi, toastError, ensureLogin } from '../../utils/api'
 import { parseProfileLink } from '../../utils/lc'
 
 Page({
@@ -34,9 +34,10 @@ Page({
     this.setData({ checking: true, error: '', preview: null })
     try {
       await ensureLogin()
-      const preview = await request<LcPreview>('/api/bind', {
-        method: 'POST',
-        data: { site: target.site, slug: target.slug, dryRun: true },
+      const preview = await callApi<LcPreview>('bind', {
+        site: target.site,
+        slug: target.slug,
+        dryRun: true,
       })
       this.setData({ preview, slug: target.slug, site: target.site, checking: false })
     } catch (err) {
@@ -51,10 +52,7 @@ Page({
     if (!this.data.preview) return
     this.setData({ saving: true })
     try {
-      await request('/api/bind', {
-        method: 'POST',
-        data: { site: this.data.site, slug: this.data.slug, dryRun: false },
-      })
+      await callApi('bind', { site: this.data.site, slug: this.data.slug, dryRun: false })
       wx.showToast({ title: '绑定成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 800)
     } catch (err) {

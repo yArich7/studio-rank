@@ -1,11 +1,4 @@
-import { API_BASE, TOKEN_KEY, USER_KEY, LAST_ERROR_KEY } from '../config'
-
-interface ApiResponse<T> {
-  ok: boolean
-  data?: T
-  error?: string
-  code?: string
-}
+import { CLOUD_ENV, USER_KEY, LAST_ERROR_KEY } from '../config'
 
 export class ApiError extends Error {
   code?: string
@@ -16,29 +9,11 @@ export class ApiError extends Error {
   }
 }
 
-/** 把服务端返回的相对路径（/uploads/x.jpg）补成完整地址；外链原样返回 */
-export function resolveUrl(url: string): string {
-  if (!url) return ''
-  return url.startsWith('/') ? `${API_BASE}${url}` : url
-}
-
-/** 保存前把完整地址还原成相对路径，避免把 IP 写进数据库 */
-export function toStoragePath(url: string): string {
-  if (!url) return ''
-  return url.startsWith(API_BASE) ? url.slice(API_BASE.length) : url
-}
-
-export function getToken(): string {
-  return wx.getStorageSync(TOKEN_KEY) || ''
-}
-
-export function setToken(token: string): void {
-  wx.setStorageSync(TOKEN_KEY, token)
-}
-
-export function clearAuth(): void {
-  wx.removeStorageSync(TOKEN_KEY)
-  wx.removeStorageSync(USER_KEY)
+interface CloudResult<T> {
+  ok: boolean
+  data?: T
+  error?: string
+  code?: string
 }
 
 export function getCachedUser(): IUser | null {
@@ -49,106 +24,70 @@ export function setCachedUser(user: IUser): void {
   wx.setStorageSync(USER_KEY, user)
 }
 
-export function request<T>(
-  path: string,
-  options: { method?: 'GET' | 'POST'; data?: Record<string, unknown>; auth?: boolean } = {}
-): Promise<T> {
-  const { method = 'GET', data, auth = true } = options
-  return new Promise<T>((resolve, reject) => {
-    wx.request({
-      url: `${API_BASE}${path}`,
-      method,
-      data,
-      timeout: 15000,
-      header: {
-        'Content-Type': 'application/json',
-        ...(auth ? { Authorization: `Bearer ${getToken()}` } : {}),
-      },
-      success(res) {
-        const body = res.data as ApiResponse<T>
-        if (res.statusCode === 401) {
-          clearAuth()
-          goLogin()
-          reject(new ApiError('登录已失效，请重新登录', 'NEED_LOGIN'))
-          return
-        }
-        if (res.statusCode >= 200 && res.statusCode < 300 && body && body.ok) {
-          resolve(body.data as T)
-        } else {
-          reject(new ApiError((body && body.error) || `请求失败（${res.statusCode}）`, body && body.code))
-        }
-      },
-      fail() {
-        reject(new Error('连不上服务，请确认后端已启动'))
-      },
-    })
-  })
+export function clearAuth(): void {
+  wx.removeStorageSync(USER_KEY)
 }
 
-function wxLoginCode(): Promise<string> {
-  return new Promise((resolve, reject) => {
-    wx.login({
-      success(res) {
-        if (res.code) resolve(res.code)
-        else reject(new Error('微信登录失败'))
-      },
-      fail() {
-        reject(new Error('微信登录失败'))
-      },
-    })
+/** 统一调用云函数 api，把 { ok, data } 解包成 data */
+export async function callApi<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  const res = await wx.cloud.callFunction({
+    name: 'api',
+    data: { action, ...payload },
   })
+  const body = res.result as CloudResult<T> | undefined
+  if (!body || body.ok !== true) {
+    throw new ApiError((body && body.error) || '服务异常', body && body.code)
+  }
+  return body.data as T
 }
 
+/** 云函数里直接能取到 openid，不需要 wx.login 换 code */
 export async function login(invite?: string): Promise<IUser> {
-  const code = await wxLoginCode()
-  const data = await request<{ token: string; user: IUser }>('/api/login', {
-    method: 'POST',
-    data: { code, invite },
-    auth: false,
-  })
-  setToken(data.token)
+  const data = await callApi<{ user: IUser }>('login', { invite })
   setCachedUser(data.user)
   return data.user
 }
 
 /**
- * 静默登录：有缓存直接用；没有就悄悄 wx.login，用户无感知。
- * 只有两种情况会打扰用户：
- *   1. 新用户 → 邀请码页
- *   2. 静默失败（网络/配置问题）→ 登录页兜底，可手动重试
+ * 静默登录：有缓存直接用；没有就调一次云函数。
+ * 只有新用户（NEED_INVITE）和失败时会打扰用户。
  */
 const REFRESH_INTERVAL = 5 * 60 * 1000
 let lastRefreshAt = 0
 
 export async function ensureLogin(): Promise<IUser> {
   const cached = getCachedUser()
-
-  // 5 分钟内直接用缓存，避免每次切页面都打一次 /api/login
-  if (cached && getToken() && Date.now() - lastRefreshAt < REFRESH_INTERVAL) {
-    return cached
-  }
+  if (cached && Date.now() - lastRefreshAt < REFRESH_INTERVAL) return cached
 
   try {
     const user = await login()
     lastRefreshAt = Date.now()
     return user
   } catch (err) {
-    // 新用户：去邀请码页
     if (err instanceof ApiError && err.code === 'NEED_INVITE') {
       goInvite()
       throw err
     }
+    if (cached) return cached
 
-    // 网络异常：先用缓存兜底，让用户还能看看旧数据
-    if (cached && getToken()) {
-      return cached
-    }
-
-    // 彻底没有登录态：记录原因并去登录页
     wx.setStorageSync(LAST_ERROR_KEY, err instanceof Error ? err.message : '登录失败')
     goLogin()
     throw err
   }
+}
+
+export async function updateProfile(patch: { nickname?: string; avatarUrl?: string }): Promise<IUser> {
+  const data = await callApi<{ user: IUser }>('profile', patch)
+  setCachedUser(data.user)
+  return data.user
+}
+
+/** 头像直接传到云存储，返回 fileID，<image> 可直接渲染 */
+export async function uploadAvatar(filePath: string): Promise<string> {
+  const ext = (filePath.split('.').pop() || 'jpg').toLowerCase()
+  const cloudPath = `avatars/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+  const res = await wx.cloud.uploadFile({ cloudPath, filePath })
+  return res.fileID
 }
 
 let navigatedAt = 0
@@ -170,42 +109,10 @@ export function goInvite(): void {
   navigateOnce('/pages/invite/index')
 }
 
-export async function refreshUser(): Promise<IUser> {
-  return login()
-}
-
-export function uploadAvatar(filePath: string): Promise<UploadResult> {
-  return new Promise((resolve, reject) => {
-    wx.uploadFile({
-      url: `${API_BASE}/api/upload`,
-      filePath,
-      name: 'file',
-      header: { Authorization: `Bearer ${getToken()}` },
-      success(res) {
-        try {
-          const body = JSON.parse(res.data) as ApiResponse<UploadResult>
-          if (body.ok) resolve(body.data as UploadResult)
-          else reject(new ApiError(body.error || '上传失败', body.code))
-        } catch (err) {
-          reject(new ApiError('上传返回异常'))
-        }
-      },
-      fail() {
-        reject(new ApiError('头像上传失败'))
-      },
-    })
-  })
-}
-
-export async function updateProfile(patch: { nickname?: string; avatarUrl?: string }): Promise<IUser> {
-  const data = await request<{ user: IUser }>('/api/profile', { method: 'POST', data: patch })
-  setCachedUser(data.user)
-  return data.user
-}
-
 export function toastError(err: unknown): void {
-  // 邀请码页面自己会提示，这里不重复弹
   if (err instanceof ApiError && (err.code === 'NEED_INVITE' || err.code === 'NEED_LOGIN')) return
   const message = err instanceof Error ? err.message : String(err)
   wx.showToast({ title: message.slice(0, 30), icon: 'none', duration: 2500 })
 }
+
+export { CLOUD_ENV }

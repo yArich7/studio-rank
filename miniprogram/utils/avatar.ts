@@ -1,41 +1,27 @@
-import { API_BASE } from '../config'
-
-const fs = wx.getFileSystemManager()
-
-function hash(text: string): string {
-  let h = 0
-  for (let i = 0; i < text.length; i += 1) {
-    h = (h * 31 + text.charCodeAt(i)) | 0
-  }
-  return Math.abs(h).toString(36)
-}
-
-function exists(path: string): boolean {
-  try {
-    fs.accessSync(path)
-    return true
-  } catch (err) {
-    return false
-  }
-}
+import { CLOUD_ENV } from '../config'
 
 /**
- * 把接口返回的头像转成 <image> 最稳的形式：
- *   data:  → 写到本地文件，返回 wxfile:// 路径（真机比 base64 可靠）
- *   /xxx   → 拼上 API_BASE
- *   其它   → 原样返回（外链）
+ * 头像地址统一处理：
+ *   cloud://xxx  → 云存储 fileID，<image> 可直接渲染
+ *   data:xxx     → 旧数据，写到本地文件后渲染
+ *   https://xxx  → 外链原样返回
  */
 export function resolveAvatar(url: string, key: string): string {
   if (!url) return ''
+  if (!url.startsWith('data:')) return url
 
-  if (!url.startsWith('data:')) {
-    return url.startsWith('/') ? `${API_BASE}${url}` : url
-  }
-
+  const fs = wx.getFileSystemManager()
   const version = hash(url)
   const cacheKey = `avatar_${key}_${version}`
   const cached = wx.getStorageSync(cacheKey)
-  if (cached && exists(cached)) return cached
+  if (cached) {
+    try {
+      fs.accessSync(cached)
+      return cached
+    } catch (err) {
+      // 文件被清理了，重新写
+    }
+  }
 
   const base64 = url.slice(url.indexOf(',') + 1)
   const path = `${wx.env.USER_DATA_PATH}/avatar-${key}-${version}.jpg`
@@ -48,3 +34,11 @@ export function resolveAvatar(url: string, key: string): string {
     return ''
   }
 }
+
+function hash(text: string): string {
+  let h = 0
+  for (let i = 0; i < text.length; i += 1) h = (h * 31 + text.charCodeAt(i)) | 0
+  return Math.abs(h).toString(36)
+}
+
+export { CLOUD_ENV }

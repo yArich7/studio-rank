@@ -143,29 +143,65 @@ node scripts/e2e.js
 
 鉴权：`Authorization: Bearer <token>`，token = `openid.HMAC-SHA256`。
 
-## 上线部署
+## 后端方案
 
-一键脚本（推荐）：
+默认用**微信云开发**（云函数 + 云数据库），不需要买服务器、不需要备案域名。
+
+```
+小程序 ──wx.cloud.callFunction──▶ 云函数 api ──▶ 云数据库
+                                    ▲
+                        云函数 sync（每小时定时触发）
+```
+
+### 部署（三条命令）
+
+```bash
+# 1. 生成配置（填 appid 与云环境 ID）
+node scripts/setup.mjs
+
+# 2. 部署云函数
+/Applications/wechatwebdevtools.app/Contents/MacOS/cli cloud functions deploy \
+  --env <你的环境ID> --names api sync --remote-npm-install \
+  --project . --port 18344
+```
+
+`--remote-npm-install` 不能省，否则云端找不到 `wx-server-sdk`。
+
+### 部署后在控制台做两件事
+
+1. **云函数 → sync → 配置**：超时改成 **60 秒**（默认 3 秒，50 人同步会超时）
+2. **云函数 → sync → 触发器**：确认有每小时触发（`0 5 * * * * *`）
+
+### 数据库集合
+
+首次调用云函数会自动创建：
+
+| 集合 | 内容 |
+| --- | --- |
+| `users` | 用户资料（昵称、头像） |
+| `lc_accounts` | 力扣绑定与累计数据 |
+| `accounts` | — |
+| `daily_stats` | 每日新增 |
+| `sync_logs` | 同步日志 |
+| `invites` | 邀请码与使用次数 |
+
+### 邀请码管理
+
+云开发控制台 → 数据库 → `invites`：
+
+```json
+{ "code": "STUDIO2026", "used": 0, "limit": 50 }
+```
+
+改 `limit` 调上限，加一条记录就是新邀请码，删掉即失效。
+
+## 自建服务器（备选）
+
+`server/` 目录是完整的自托管版本（零依赖 Node，JSON 文件存储），适合有公网服务器的场景。步骤见 [server/DEPLOY.md](server/DEPLOY.md)，一键脚本：
 
 ```bash
 scp scripts/deploy.sh root@your-server:/root/
 ssh root@your-server 'bash /root/deploy.sh'
 ```
 
-自动完成：装 Node/pm2 → 克隆仓库 → 生成 `.env` → pm2 启动 → 健康检查。幂等，可重复执行。
-
-手动步骤见 [server/DEPLOY.md](server/DEPLOY.md)：服务器准备 → `.env` 配置 → pm2 守护 → Nginx + Let's Encrypt → 小程序域名白名单。
-
-关键三点：
-
-1. 必须有**已备案域名**（小程序只能请求备案过的 HTTPS 域名）
-2. 生产环境**不要**设 `DEV_MODE=1`
-3. `.env` 里的 `AUTH_SECRET`、`APPSECRET` 不能进仓库
-
-## 邀请码
-
-- 新用户首次登录必须提供有效邀请码，老用户直接进。
-- 一个码可多人用，总次数受 `INVITE_LIMIT` 限制（默认 50）。
-- 可以同时配多个码，方便区分来源或单独作废。
-- 码只存在服务端环境变量里，**前端代码不写死**；泄露就换一组并重启。
-- 本地开发不配 `INVITE_CODES` 时放行，方便调试。
+两种方案的接口逻辑一致，`server/` 不需要时可以整个删掉。

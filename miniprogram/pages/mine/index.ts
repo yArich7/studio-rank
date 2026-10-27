@@ -1,4 +1,4 @@
-import { ensureLogin, refreshUser, toastError } from '../../utils/api'
+import { ensureLogin, login, toastError } from '../../utils/api'
 import { resolveAvatar } from '../../utils/avatar'
 import { BUILD } from '../../config'
 
@@ -30,7 +30,7 @@ Page({
 
   async reLogin() {
     try {
-      const user = await refreshUser()
+      const user = await login()
       this.setData({ user })
       wx.showToast({ title: '已刷新', icon: 'success' })
     } catch (err) {

@@ -1,4 +1,4 @@
 {
   "appid": "wx0000000000000000",
-  "apiBase": "http://localhost:3000"
+  "cloudEnv": "your-env-id"
 }

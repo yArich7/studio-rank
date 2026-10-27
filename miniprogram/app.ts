@@ -1,3 +1,5 @@
+import { CLOUD_ENV } from './config'
+
 App<IAppOption>({
   globalData: {
     openid: '',
@@ -5,6 +7,13 @@ App<IAppOption>({
   },
 
   onLaunch() {
-    // 登录态由 utils/api 的 ensureLogin() 按需触发，这里不做阻塞式登录
+    if (!wx.cloud) {
+      console.error('基础库版本过低，请使用 2.2.3 及以上版本')
+      return
+    }
+    wx.cloud.init({
+      env: CLOUD_ENV,
+      traceUser: true,
+    })
   },
 })
