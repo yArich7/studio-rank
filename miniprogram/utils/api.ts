@@ -28,8 +28,13 @@ export function clearAuth(): void {
   wx.removeStorageSync(USER_KEY)
 }
 
-/** 统一调用云函数 api，把 { ok, data } 解包成 data */
-export async function callApi<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+/** 网络抖动（发送失败 / 超时）时重试一次，云函数冷启动也常被兜住 */
+function isNetworkError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err)
+  return /fail|timeout|超时|发送失败|network/i.test(msg)
+}
+
+async function callOnce<T>(action: string, payload: Record<string, unknown>): Promise<T> {
   const res = await wx.cloud.callFunction({
     name: 'api',
     data: { action, ...payload },
@@ -39,6 +44,20 @@ export async function callApi<T>(action: string, payload: Record<string, unknown
     throw new ApiError((body && body.error) || '服务异常', body && body.code)
   }
   return body.data as T
+}
+
+/** 统一调用云函数 api，把 { ok, data } 解包成 data */
+export async function callApi<T>(action: string, payload: Record<string, unknown> = {}): Promise<T> {
+  try {
+    return await callOnce<T>(action, payload)
+  } catch (err) {
+    // 业务错误（邀请码、参数校验）不重试，只重试网络层失败
+    if (err instanceof ApiError && err.code) throw err
+    if (!isNetworkError(err)) throw err
+
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    return callOnce<T>(action, payload)
+  }
 }
 
 /** 云函数里直接能取到 openid，不需要 wx.login 换 code */
