@@ -28,6 +28,19 @@ export function clearAuth(): void {
   wx.removeStorageSync(USER_KEY)
 }
 
+/** 把云函数返回的原始错误翻译成能看懂的话 */
+function describeCloudError(err: unknown): string {
+  const raw = err instanceof Error ? err.message : String(err)
+  const msg = (err as { errMsg?: string })?.errMsg || raw
+
+  if (/env.*(not exist|invalid)|环境不存在|invalid env/i.test(msg)) return '云环境不存在，检查 config.local.ts 的 CLOUD_ENV'
+  if (/FunctionName|function.*not.*found|云函数不存在/i.test(msg)) return '云函数未部署，请在开发者工具重新上传 api'
+  if (/timeout|timed out|超时/i.test(msg)) return '请求超时，请重试'
+  if (/network|发送失败|ERR_INTERNET/i.test(msg)) return '网络异常，请检查手机网络'
+  if (/-504002|functions execute fail/i.test(msg)) return '云函数执行失败，请查看云函数日志'
+  return msg.slice(0, 80)
+}
+
 /** 网络抖动（发送失败 / 超时）时重试一次，云函数冷启动也常被兜住 */
 function isNetworkError(err: unknown): boolean {
   const msg = err instanceof Error ? err.message : String(err)
@@ -35,10 +48,16 @@ function isNetworkError(err: unknown): boolean {
 }
 
 async function callOnce<T>(action: string, payload: Record<string, unknown>): Promise<T> {
-  const res = await wx.cloud.callFunction({
-    name: 'api',
-    data: { action, ...payload },
-  })
+  let res: { result: unknown }
+  try {
+    res = await wx.cloud.callFunction({
+      name: 'api',
+      data: { action, ...payload },
+    })
+  } catch (err) {
+    console.error('[cloud] 调用失败', action, err)
+    throw new ApiError(describeCloudError(err), 'CLOUD_ERROR')
+  }
   const body = res.result as CloudResult<T> | undefined
   if (!body || body.ok !== true) {
     throw new ApiError((body && body.error) || '服务异常', body && body.code)
