@@ -91,11 +91,28 @@ export async function ensureLogin(): Promise<IUser> {
   }
 }
 
-/** 退出：清掉云端绑定与统计，再清本地缓存 */
+/** 清掉榜单/数据页缓存，绑定或资料变更后调用，避免看到旧数据 */
+export function clearPageCaches(): void {
+  wx.removeStorageSync('stats_cache')
+  for (const period of ['day', 'week', 'month', 'total']) {
+    wx.removeStorageSync(`rank_cache_${period}`)
+  }
+  try {
+    const info = wx.getStorageInfoSync()
+    for (const key of info.keys) {
+      if (key.startsWith('avatar_')) wx.removeStorageSync(key)
+    }
+  } catch (err) {
+    console.error('清理头像缓存失败', err)
+  }
+}
+
+/** 退出：清掉云端绑定与统计，再清掉本地所有相关缓存 */
 export async function logout(): Promise<void> {
   await callApi('logout')
   clearAuth()
   lastRefreshAt = 0
+  clearPageCaches()
 }
 
 export async function updateProfile(patch: { nickname?: string; avatarUrl?: string }): Promise<IUser> {

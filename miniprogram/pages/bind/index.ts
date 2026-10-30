@@ -1,4 +1,4 @@
-import { callApi, toastError, ensureLogin } from '../../utils/api'
+import { callApi, clearPageCaches, ensureLogin } from '../../utils/api'
 import { parseProfileLink } from '../../utils/lc'
 
 Page({
@@ -74,10 +74,12 @@ Page({
         invite: this.data.invite.trim(),
         dryRun: false,
       })
+      clearPageCaches()
       wx.showToast({ title: '绑定成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 800)
     } catch (err) {
-      toastError(err)
+      // 邀请码相关的错误码会被统一 toast 吞掉，这里直接显示在页面上
+      this.setData({ error: err instanceof Error ? err.message : '绑定失败' })
     } finally {
       this.setData({ saving: false })
     }

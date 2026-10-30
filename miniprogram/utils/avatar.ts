@@ -1,5 +1,3 @@
-import { CLOUD_ENV } from '../config'
-
 /**
  * 头像地址统一处理：
  *   cloud://xxx  → 云存储 fileID，<image> 可直接渲染
@@ -40,5 +38,3 @@ function hash(text: string): string {
   for (let i = 0; i < text.length; i += 1) h = (h * 31 + text.charCodeAt(i)) | 0
   return Math.abs(h).toString(36)
 }
-
-export { CLOUD_ENV }

@@ -112,36 +112,36 @@ curl -X POST http://localhost:3000/api/login -H 'Content-Type: application/json'
 node scripts/e2e.js
 ```
 
-## 登录流程（静默）
+## 登录与准入
 
 ```
-打开小程序 → 有 token → 直接用
-          └ 没有 → 后台 wx.login → POST /api/login
-                     ├─ 老用户 → 签发 token，无感进入
-                     ├─ 新用户 → NEED_INVITE → 邀请码页
-                     └─ 失败   → 登录页兜底（可手动重试）
+打开小程序 → 云函数 login（自动带上 OPENID）
+              ├─ 老用户 → 直接返回资料
+              └─ 新用户 → 自动建档，先看榜单
+
+绑定力扣 → 校验邀请码 → 绑定成功才消耗一次
+退出登录 → 删除绑定与每日记录，清空 invitedAt
 ```
 
-- 不弹登录页、不让用户点按钮，只拿 openid 做身份区分。
-- 登录页（`pages/login`）只在静默失败时出现，属于兜底，不是主流程。
-- token 是无状态 HMAC（`openid.签名`），服务端重启不掉线；改 `AUTH_SECRET` 才会全部失效。
-- 任何接口 401 → 清登录态，下次进入自动重新静默登录。
-- **本地开发**：`DEV_MODE=1` 跳过 `code2Session`，固定身份 `dev_local`，无需 AppSecret。
-- **真机/线上**：`.env` 配 `APPID` + `APPSECRET`，并删掉 `DEV_MODE`。
+- 云函数里 `cloud.getWXContext().OPENID` 直接给出身份，**不需要 `wx.login`、不需要 AppSecret、不签发 token**
+- 邀请码只在**绑定力扣**时校验；没绑定的人能浏览榜单，但不会出现在榜单上（榜单只含已绑定成员）
+- 退出后想再绑定，需要重新输入邀请码
 
-## 接口
+## 云函数接口
 
-| 方法 | 路径 | 说明 |
+统一入口 `wx.cloud.callFunction({ name: 'api', data: { action, ... } })`，返回 `{ ok, data }` 或 `{ ok: false, error, code }`。
+
+| action | 参数 | 说明 |
 | --- | --- | --- |
-| POST | `/api/login` | `{code, invite?}` → `{token, user}`；新用户缺邀请码返回 `NEED_INVITE` |
-| POST | `/api/bind` | `{site, slug, dryRun}`，dryRun 只校验不写库 |
-| POST | `/api/upload` | multipart 上传头像，返回 `{url}` |
-| POST | `/api/profile` | `{nickname?, avatarUrl?}` 更新资料 |
-| GET | `/api/rank?period=day\|week\|month\|total` | 榜单 + 我的排名 |
-| GET | `/api/stats` | 今日/本周/本月/总计 + 难度占比 |
-| POST | `/api/sync` | 手动触发同步，需 `X-Admin-Token` |
+| `login` | — | 建档并返回用户资料 |
+| `bind` | `{site, slug, invite?, dryRun}` | 校验/写入力扣绑定，首次需要邀请码 |
+| `profile` | `{nickname?, avatarUrl?}` | 更新昵称与头像 |
+| `rank` | `{period}` | `day` / `week` / `month` / `total` |
+| `stats` | — | 今日/本周/本月/总计 + 难度数量 |
+| `logout` | — | 删除绑定与每日记录 |
+| `setup` | — | 手动建集合（一般不需要，首次调用会自动建） |
 
-鉴权：`Authorization: Bearer <token>`，token = `openid.HMAC-SHA256`。
+定时同步是独立的 `sync` 云函数，由触发器每小时第 5 分钟调用。
 
 ## 后端方案
 
