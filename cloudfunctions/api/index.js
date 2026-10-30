@@ -87,18 +87,10 @@ async function useInvite(code) {
   else await db.collection(COL.invites).add({ data: { code, used: 1 } })
 }
 
-async function doLogin(openid, event) {
-  const existing = await first(COL.users, { _openid: openid })
-
-  if (!existing) {
-    const invite = String(event.invite || '')
-    const checked = await checkInvite(invite)
-    if (!checked.ok) return fail(checked.error, 'NEED_INVITE')
-    if (invite) await useInvite(invite)
-  }
-
+async function doLogin(openid) {
+  // 直接建档，不拦邀请码：未绑定力扣的人也能看榜单
   const user = await ensureUser(openid)
-  return ok({ user, isNewUser: !existing })
+  return ok({ user, needInvite: !user.invitedAt })
 }
 
 async function doProfile(openid, event) {
@@ -128,15 +120,24 @@ async function doProfile(openid, event) {
 async function doBind(openid, event) {
   const site = String(event.site || 'cn')
   const slug = String(event.slug || '').trim()
+  const invite = String(event.invite || '')
 
   if (!SITES[site]) throw new Error('站点不合法')
   if (!SLUG_RE.test(slug)) throw new Error('用户名不合法')
+
+  // 未通过邀请码的人才需要校验，已验证过的不再要求
+  const user = await ensureUser(openid)
+  const needInvite = !user.invitedAt
+  if (needInvite) {
+    const checked = await checkInvite(invite)
+    if (!checked.ok) return fail(checked.error, 'NEED_INVITE')
+  }
 
   const profile = await fetchProfile(site, slug)
   const taken = await first(COL.accounts, { site, slug })
   if (taken && taken._openid !== openid) throw new Error('该力扣账号已被其他成员绑定')
 
-  const preview = { ...profile, site, slug }
+  const preview = { ...profile, site, slug, needInvite }
   if (event.dryRun) return ok(preview)
 
   const now = new Date().toISOString()
@@ -154,7 +155,13 @@ async function doBind(openid, event) {
   if (existing) await db.collection(COL.accounts).doc(existing._id).update({ data })
   else await db.collection(COL.accounts).add({ data })
 
-  return ok(preview)
+  // 首次绑定成功才消耗邀请码
+  if (needInvite) {
+    if (invite) await useInvite(invite)
+    await db.collection(COL.users).doc(user._id).update({ data: { invitedAt: now } })
+  }
+
+  return ok({ ...preview, needInvite: false })
 }
 
 async function doRank(openid, period) {
@@ -250,6 +257,28 @@ async function doStats(openid) {
   })
 }
 
+async function doLogout(openid) {
+  const account = await first(COL.accounts, { _openid: openid })
+  if (account) await db.collection(COL.accounts).doc(account._id).remove()
+
+  let removedStats = 0
+  for (let round = 0; round < 20; round += 1) {
+    const res = await db.collection(COL.stats).where({ _openid: openid }).limit(100).get()
+    if (!res.data.length) break
+    await Promise.all(res.data.map((row) => db.collection(COL.stats).doc(row._id).remove()))
+    removedStats += res.data.length
+  }
+
+  const user = await first(COL.users, { _openid: openid })
+  if (user) {
+    await db.collection(COL.users).doc(user._id).update({
+      data: { invitedAt: _.remove(), avatarUrl: '', nickname: '刷题同学' }
+    })
+  }
+
+  return ok({ removedStats })
+}
+
 async function doSetup() {
   const names = [COL.users, COL.accounts, COL.stats, COL.logs, COL.invites]
   const created = []
@@ -278,6 +307,7 @@ exports.main = async (event) => {
       case 'rank': return await doRank(OPENID, event.period || 'week')
       case 'stats': return await doStats(OPENID)
       case 'setup': return await doSetup()
+      case 'logout': return await doLogout(OPENID)
       default: return fail('未知操作')
     }
   } catch (err) {

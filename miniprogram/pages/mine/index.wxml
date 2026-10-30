@@ -31,6 +31,10 @@
     头像加载失败：{{user.avatarUrl}}
   </view>
 
+  <view class="logout-wrap" bindtap="onLogout">
+    <view class="btn-ghost">退出登录</view>
+  </view>
+
   <view class="muted foot">数据来自力扣公开主页，每小时同步一次</view>
   <view class="muted foot">版本 {{build}}</view>
 </view>

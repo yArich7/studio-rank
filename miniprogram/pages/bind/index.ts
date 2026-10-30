@@ -7,9 +7,24 @@ Page({
     slug: '',
     site: 'cn' as string,
     preview: null as LcPreview | null,
+    invite: '',
+    needInvite: false,
     checking: false,
     saving: false,
     error: '',
+  },
+
+  async onShow() {
+    try {
+      const user = await ensureLogin()
+      this.setData({ needInvite: !user.invitedAt })
+    } catch (err) {
+      // 静默失败，绑定时还会再校验一次
+    }
+  },
+
+  onInviteInput(e: WechatMiniprogram.Input) {
+    this.setData({ invite: e.detail.value, error: '' })
   },
 
   onInput(e: WechatMiniprogram.Input) {
@@ -37,6 +52,7 @@ Page({
       const preview = await callApi<LcPreview>('bind', {
         site: target.site,
         slug: target.slug,
+        invite: this.data.invite.trim(),
         dryRun: true,
       })
       this.setData({ preview, slug: target.slug, site: target.site, checking: false })
@@ -52,7 +68,12 @@ Page({
     if (!this.data.preview) return
     this.setData({ saving: true })
     try {
-      await callApi('bind', { site: this.data.site, slug: this.data.slug, dryRun: false })
+      await callApi('bind', {
+        site: this.data.site,
+        slug: this.data.slug,
+        invite: this.data.invite.trim(),
+        dryRun: false,
+      })
       wx.showToast({ title: '绑定成功', icon: 'success' })
       setTimeout(() => wx.navigateBack(), 800)
     } catch (err) {

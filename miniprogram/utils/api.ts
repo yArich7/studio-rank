@@ -83,16 +83,19 @@ export async function ensureLogin(): Promise<IUser> {
     lastRefreshAt = Date.now()
     return user
   } catch (err) {
-    if (err instanceof ApiError && err.code === 'NEED_INVITE') {
-      goInvite()
-      throw err
-    }
     if (cached) return cached
 
     wx.setStorageSync(LAST_ERROR_KEY, err instanceof Error ? err.message : '登录失败')
     goLogin()
     throw err
   }
+}
+
+/** 退出：清掉云端绑定与统计，再清本地缓存 */
+export async function logout(): Promise<void> {
+  await callApi('logout')
+  clearAuth()
+  lastRefreshAt = 0
 }
 
 export async function updateProfile(patch: { nickname?: string; avatarUrl?: string }): Promise<IUser> {
@@ -122,10 +125,6 @@ function navigateOnce(url: string): void {
 
 export function goLogin(): void {
   navigateOnce('/pages/login/index')
-}
-
-export function goInvite(): void {
-  navigateOnce('/pages/invite/index')
 }
 
 export function toastError(err: unknown): void {

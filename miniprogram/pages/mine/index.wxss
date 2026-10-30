@@ -30,3 +30,16 @@
   border-radius: 8rpx;
   word-break: break-all;
 }
+
+.logout-wrap { margin: 40rpx 32rpx 0; }
+.btn-ghost {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  font-size: 30rpx;
+  color: var(--hard);
+  background: #fff;
+  border-radius: 16rpx;
+}
+.logout-wrap:active .btn-ghost { background: #F7F8FA; }

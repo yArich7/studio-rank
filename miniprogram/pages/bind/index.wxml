@@ -1,4 +1,15 @@
 <view class="page">
+  <view wx:if="{{needInvite}}" class="card">
+    <view class="label">邀请码</view>
+    <input
+      class="input invite"
+      value="{{invite}}"
+      placeholder="向工作室管理员索取"
+      placeholder-class="ph"
+      bindinput="onInviteInput"
+    />
+  </view>
+
   <view class="card">
     <view class="label">力扣主页链接</view>
     <textarea

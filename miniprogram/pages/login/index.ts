@@ -1,4 +1,4 @@
-import { login, ApiError, getCachedUser, goInvite } from '../../utils/api'
+import { login, getCachedUser } from '../../utils/api'
 import { LAST_ERROR_KEY } from '../../config'
 
 Page({
@@ -32,11 +32,6 @@ Page({
       wx.showToast({ title: '登录成功', icon: 'success' })
       setTimeout(() => wx.switchTab({ url: '/pages/rank/index' }), 500)
     } catch (err) {
-      if (err instanceof ApiError && err.code === 'NEED_INVITE') {
-        // 新用户：登录成功但需要邀请码才能进
-        wx.redirectTo({ url: '/pages/invite/index' })
-        return
-      }
       this.setData({ error: err instanceof Error ? err.message : '登录失败' })
     } finally {
       this.setData({ loading: false })

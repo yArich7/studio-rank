@@ -1,4 +1,4 @@
-import { ensureLogin, login, toastError } from '../../utils/api'
+import { ensureLogin, login, logout, toastError } from '../../utils/api'
 import { resolveAvatar } from '../../utils/avatar'
 import { BUILD } from '../../config'
 
@@ -40,6 +40,28 @@ Page({
 
   onAvatarError() {
     this.setData({ avatarError: true })
+  },
+
+  onLogout() {
+    wx.showModal({
+      title: '退出登录',
+      content: '会清除本机缓存，并删除你的力扣绑定和刷题记录。下次绑定需要重新输入邀请码。',
+      confirmText: '退出',
+      confirmColor: '#E5484D',
+      success: async (res) => {
+        if (!res.confirm) return
+        wx.showLoading({ title: '退出中', mask: true })
+        try {
+          await logout()
+          wx.hideLoading()
+          wx.showToast({ title: '已退出', icon: 'success' })
+          setTimeout(() => wx.switchTab({ url: '/pages/rank/index' }), 600)
+        } catch (err) {
+          wx.hideLoading()
+          toastError(err)
+        }
+      },
+    })
   },
 
   goProfile() {

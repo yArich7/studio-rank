@@ -9,6 +9,7 @@ interface IAppOption {
 
 interface IUser {
   openid: string
+  invitedAt?: string
   nickname: string
   avatarUrl: string
   avatarPath?: string
